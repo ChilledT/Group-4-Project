@@ -6,8 +6,5 @@ using UnityEngine;
 public class Card : ScriptableObject
 {
     public new string name;
-    [TextArea]
-    public string description;
-    [Space]
-    public Color color;
+    public Sprite sprite;
 }

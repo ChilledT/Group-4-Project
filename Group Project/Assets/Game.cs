@@ -133,6 +133,8 @@ public class Game : MonoBehaviour
                 {
                     handVisuals[i].gameObject.SetActive(true);
                     handVisuals[i].card = hand.cards[i];
+
+                    handVisuals[i].isSelected = currentCard == i;
                 }
             }
             else
