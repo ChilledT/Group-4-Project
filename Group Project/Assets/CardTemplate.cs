@@ -9,6 +9,7 @@ public class CardTemplate : MonoBehaviour
     public bool flipped;
 
     public bool isSelected;
+    public bool isTrading;
 
     public Image image;
 
@@ -22,6 +23,7 @@ public class CardTemplate : MonoBehaviour
     private void Update()
     {
         transform.Find("Selected").gameObject.SetActive(isSelected);
+        transform.Find("TradingSelected").gameObject.SetActive(isTrading);
 
         if (oldCard != card)
         {

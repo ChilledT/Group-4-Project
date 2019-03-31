@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
@@ -10,6 +11,16 @@ public class Game : MonoBehaviour
     private int oldCard = -1;
 
     public int handSize;
+    [Space]
+    public int stress;
+    public int knowledge;
+    [Space]
+    public int maxStress = 25;
+    [Space]
+    public int year = 1;
+    public int semester = 1;
+    [Space]
+    public float timer;
 
     [Header("Starting Decks")]
     public Deck startingDeck;
@@ -19,6 +30,10 @@ public class Game : MonoBehaviour
     public Deck hand;
     public List<CardTemplate> handVisuals = new List<CardTemplate>();
 
+    [Header("Shop")]
+    public Deck[] shops;
+    public CardTemplate[] shopVisuals;
+
     [Header("Discard")]
     public Deck discard;
     public CardTemplate discardVisuals;
@@ -26,16 +41,40 @@ public class Game : MonoBehaviour
     [Header("Trash")]
     public Deck trash;
     public CardTemplate trashVisuals;
-
-    public Card[] testCards;
-
+    [Space]
     public bool isHandEmpty;
     public bool IsHandEmpty
     {
         get
         {
+            bool[] bools = new bool[5];
+
+            for (int i = 0; i < hand.Count; i++)
+            {
+                bools[i] = true;
+                if (hand.cards[i] != null)
+                    bools[i] = false;
+                if (handVisuals[i].flipped)
+                    bools[i] = true;
+            }
+
             bool b = true;
-            for (int i = 0; i < hand.cards.Count; i++)
+
+            for (int i = 0; i < hand.Count; i++)
+            {
+                if (bools[i] == false)
+                    b = false;
+            }
+
+            return b;
+        }
+    }
+    public bool isHandNull
+    {
+        get
+        {
+            bool b = true;
+            for (int i = 0; i < hand.Count; i++)
             {
                 if (hand.cards[i] != null)
                     b = false;
@@ -45,6 +84,25 @@ public class Game : MonoBehaviour
     }
 
     public List<int> selectedCards = new List<int>();
+    private int selectedCardsCost
+    {
+        get
+        {
+            int a = 0;
+
+            for (int i = 0; i < selectedCards.Count; i++)
+            {
+                a += hand.cards[selectedCards[i]].cost;
+            }
+
+            return a;
+        }
+    }
+
+    public bool endTurn;
+    public bool isShopping;
+
+    public Effect currentEffect;
 
     private void Awake()
     {
@@ -56,20 +114,41 @@ public class Game : MonoBehaviour
     }
     private void Update()
     {
+        if (!endTurn)
+        {
+            timer -= Time.deltaTime;
+            if (timer < 0F)
+            {
+                EndTurn();
+            }
+        }
+
+        GameObject.Find("StressText").GetComponent<Text>().text = stress + " / " + maxStress;
+        GameObject.Find("KnowledgeText").GetComponent<Text>().text = knowledge.ToString();
+
+        GameObject.Find("Date").GetComponent<Text>().text = "Year " + year + " Semester " + semester;
+
+        int seconds = Mathf.FloorToInt(timer);
+        int milli = Mathf.FloorToInt((seconds == 0 ? timer : timer % seconds) * 100);
+        GameObject.Find("Time").GetComponent<Text>().text = (seconds < 10 ? "0" : "") + seconds + ":" + milli + (milli < 10 ? "0" : "");
+
         InputHandler();
 
         // handlers that handle different decks on the screen
         HandHandler();
         CardVisualsHandler();
 
-        if (startingDeck.Count == 0 && hand.Count == 0)
+        if (endTurn)
         {
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.Return))
             {
                 // next turn lmao
-                TransferDeck(discard, startingDeck);
+                endTurn = false;
             }
         }
+
+        if (startingDeck.Count == 0 && isHandNull)
+            EndTurn();
 
         isHandEmpty = IsHandEmpty;
     }
@@ -78,47 +157,86 @@ public class Game : MonoBehaviour
     {
         if (!isHandEmpty)
         {
-            if (Input.GetKeyDown(KeyCode.A))
+            if (isShopping == false)
             {
-                for (int i = 0; i < 5; i++)
+                if (Input.GetKeyDown(KeyCode.A))
                 {
-                    currentCard--;
-
-                    if (currentCard < 0)
+                    for (int i = 0; i < 5; i++)
                     {
-                        currentCard = hand.Count - 1;
-                    }
+                        currentCard--;
 
-                    if (hand.cards[currentCard] != null)
-                        break;
+                        if (currentCard < 0)
+                        {
+                            currentCard = hand.Count - 1;
+                        }
+
+                        if (hand.cards[currentCard] != null && handVisuals[currentCard].flipped == false)
+                            break;
+                    }
                 }
-            }
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                for (int i = 0; i < 5; i++)
+                if (Input.GetKeyDown(KeyCode.D))
                 {
-                    currentCard++;
-
-                    if (currentCard > hand.Count - 1)
+                    for (int i = 0; i < 5; i++)
                     {
-                        currentCard = 0;
-                    }
+                        currentCard++;
 
-                    if (hand.cards[currentCard] != null)
-                        break;
+                        if (currentCard > hand.Count - 1)
+                        {
+                            currentCard = 0;
+                        }
+
+                        if (hand.cards[currentCard] != null && handVisuals[currentCard].flipped == false)
+                            break;
+                    }
                 }
             }
         }
         else
         {
-            hand.cards.Clear();
-
-            while (startingDeck.Count > 0 && hand.Count < handSize)
+            if (endTurn == false)
             {
-                TransferCard(startingDeck, hand, 0);
+                while (hand.Count != handSize)
+                {
+                    hand.cards.Add(null);
+                }
+
+                int count = 0;
+                for (int i = 0; i < handSize; i++)
+                {
+                    if (hand.cards[i] != null)
+                        count++;
+                }
+
+                Deck temp = new Deck();
+                while (startingDeck.Count > 0 && temp.Count < handSize - count)
+                {
+                    TransferCard(startingDeck, temp, 0);
+                }
+
+                for (int i = 0; i < temp.Count; i++)
+                {
+                    for (int j = 0; j < hand.Count; j++)
+                    {
+                        if (hand.cards[j] == null)
+                        {
+                            hand.cards[j] = temp.cards[i];
+                            break;
+                        }
+                    }
+                }
+
+                for (int i = 0; i < handSize; i++)
+                {
+                    if (handVisuals[i].flipped == true)
+                    {
+                        handVisuals[i].FlipCard();
+                    }
+                }
+
+                currentEffect = Effect.None;
             }
 
-            currentCard = 0;
+            UpdateHand();
         }
 
         for (int i = 0; i < handSize; i++)
@@ -134,13 +252,50 @@ public class Game : MonoBehaviour
                     handVisuals[i].gameObject.SetActive(true);
                     handVisuals[i].card = hand.cards[i];
 
-                    handVisuals[i].isSelected = currentCard == i;
+                    if (isShopping == false)
+                    {
+                        handVisuals[i].isSelected = currentCard == i;
+                    }
+                    else
+                    {
+                        handVisuals[i].isSelected = false;
+                    }
                 }
             }
             else
             {
                 handVisuals[i].gameObject.SetActive(false);
             }
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (shops[i].Count == 0)
+            {
+                shopVisuals[i].gameObject.SetActive(false);
+            }
+            else
+            {
+                shopVisuals[i].gameObject.SetActive(true);
+                shopVisuals[i].card = shops[i].topCard;
+            }
+
+            if (isShopping)
+            {
+                shopVisuals[i].isSelected = currentCard == i;
+            }
+            else
+            {
+                shopVisuals[i].isSelected = false;
+            }
+        }
+
+        for (int i = 0; i < hand.Count; i++)
+        {
+            if (selectedCards.Contains(i))
+                handVisuals[i].isTrading = true;
+            else
+                handVisuals[i].isTrading = false;
         }
     }
     private void CardVisualsHandler ()
@@ -160,27 +315,118 @@ public class Game : MonoBehaviour
     /// </summary>
     private void InputHandler ()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (hand.Count != 0)
+            if (isShopping == false)
             {
-                TransferCard(hand, discard, currentCard);
-
-                hand.cards.Insert(currentCard, null);
-
-                oldCard = -1;
-
-                if (!isHandEmpty)
+                if (handVisuals[currentCard].flipped == false)
                 {
-                    for (int i = 0; i < hand.cards.Count; i++)
+                    switch (currentEffect)
                     {
-                        if (hand.cards[i] != null)
-                        {
-                            currentCard = i;
+                        case Effect.None:
+                            if (hand.Count != 0)
+                            {
+                                SelectCard(hand, currentCard);
+                            }
                             break;
-                        }
+                        case Effect.Lock:
+                            handVisuals[currentCard].FlipCard();
+                            currentEffect = Effect.None;
+                            UpdateHand();
+                            break;
+                        case Effect.Discard:
+                            SendToDiscard(hand, currentCard);
+                            currentEffect = Effect.None;
+                            UpdateHand();
+                            break;
+                        case Effect.Trash:
+                            SendToTrash(hand, currentCard);
+                            currentEffect = Effect.None;
+                            UpdateHand();
+                            break;
                     }
                 }
+            }
+            else
+            {
+                int cost = 0;
+                switch (currentCard)
+                {
+                    case 0:
+                        cost = 2;
+                        break;
+                    case 1:
+                        cost = 4;
+                        break;
+                    case 2:
+                        cost = 7;
+                        break;
+                    case 3:
+                        cost = 10;
+                        break;
+                }
+
+                if (selectedCardsCost >= cost)
+                {
+                    // buy card :D
+                    TransferCard(shops[currentCard], discard, shops[currentCard].Count - 1);
+                    for (int i = 0; i < selectedCards.Count; i++)
+                    {
+                        SendToTrash(hand, selectedCards[i]);
+                    }
+                    selectedCards.Clear();
+
+                    UpdateHand();
+                    isShopping = false;
+                }
+            }
+        }
+
+        if (isShopping)
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    currentCard--;
+
+                    if (currentCard < 0)
+                    {
+                        currentCard = 3;
+                    }
+
+                    if (shops[currentCard].Count != 0)
+                        break;
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    currentCard++;
+
+                    if (currentCard > 3)
+                    {
+                        currentCard = 0;
+                    }
+
+                    if (shops[currentCard].Count != 0)
+                        break;
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            if (isShopping == false && selectedCardsCost > 1)
+            {
+                currentCard = 0;
+                isShopping = true;
+            }
+            else if (isShopping == true)
+            {
+                UpdateHand();
+                isShopping = false;
             }
         }
 
@@ -211,8 +457,15 @@ public class Game : MonoBehaviour
         // adds this card to the to pile
         to.AddCard(from.cards[slot]);
 
-        // remove the card from the from pile.
-        from.RemoveCard(slot);
+        if (from == hand)
+        {
+            from.cards[slot] = null;
+        }
+        else
+        {
+            // remove the card from the from pile.
+            from.RemoveCard(slot);
+        }
     }
     
     /// <summary>
@@ -222,9 +475,156 @@ public class Game : MonoBehaviour
     /// <param name="to"></param>
     private void TransferDeck (Deck from, Deck to)
     {
-        while(from.Count != 0)
+        from.cards.RemoveAll(item => item == null);
+
+        while(from.TrueCount != 0)
         {
             TransferCard(from, to, 0);
+        }
+    }
+
+    public void SelectCard (Deck deck, int card)
+    {
+        Card c = deck.cards[card];
+
+        switch (c.effect)
+        {
+            case Effect.None:
+                UseCard(deck, card);
+                break;
+            case Effect.UseDiscard:
+                UseCard(deck, card);
+                if (discard.Count != 0)
+                {
+                    SelectCard(discard, discard.Count - 2);
+                }
+                break;
+            case Effect.UseTrash:
+                UseCard(deck, card);
+                if (trash.Count != 0)
+                {
+                    SelectCard(trash, trash.Count - 2);
+                }
+                break;
+            case Effect.DiscardHand:
+                UseCard(deck, card);
+                for (int i = 0; i < hand.Count; i++)
+                {
+                    if (hand.cards[i] == null || handVisuals[i].flipped == true)
+                        continue;
+                    SendToDiscard(hand, i);
+                }
+                break;
+            case Effect.TakeDiscard:
+                if (discard.Count != 0)
+                {
+                    TransferCard(discard, startingDeck, discard.Count - 1);
+                    startingDeck.ShuffleDeck();
+                }
+                UseCard(deck, card);
+                break;
+            case Effect.TakeTrash:
+                if (trash.Count != 0)
+                {
+                    TransferCard(trash, startingDeck, trash.Count - 1);
+                    startingDeck.ShuffleDeck();
+                }
+                UseCard(deck, card);
+                break;
+            case Effect.Lock:
+                currentEffect = Effect.Lock;
+                UseCard(deck, card);
+                break;
+            case Effect.Discard:
+                currentEffect = Effect.Discard;
+                UseCard(deck, card);
+                break;
+            case Effect.Trash:
+                currentEffect = Effect.Trash;
+                UseCard(deck, card);
+                break;
+        }
+    }
+
+    public void UseCard (Deck deck, int card)
+    {
+        Card c = deck.cards[card];
+
+        UpdateStress(c.stress);
+        UpdateKnowledge(c.knowledge);
+
+        if (c.action == Action.Discard)
+            SendToDiscard(deck, card);
+        else
+            SendToTrash(deck, card);
+
+        if (deck == hand)
+        {
+            if (selectedCards.Contains(card))
+                selectedCards.Remove(card);
+        }
+    }
+
+    private void SendToDiscard (Deck deck, int slot)
+    {
+        TransferCard(deck, discard, slot);
+
+        if (deck == hand)
+        {
+            UpdateHand();
+        }
+    }
+    private void SendToTrash(Deck deck, int slot)
+    {
+        TransferCard(deck, trash, slot);
+
+        if (deck == hand)
+        {
+            UpdateHand();
+        }
+    }
+
+    private void UpdateHand ()
+    {
+        if (!isHandNull)
+        {
+            for (int i = 0; i < hand.cards.Count; i++)
+            {
+                if (hand.cards[i] != null && handVisuals[i].flipped == false)
+                {
+                    currentCard = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void UpdateStress (int value)
+    {
+        stress += value;
+        if (stress < 0)
+            stress = 0;
+    }
+    public void UpdateKnowledge (int value)
+    {
+        knowledge += value;
+    }
+
+    private void EndTurn ()
+    {
+        endTurn = true;
+
+        TransferDeck(hand, startingDeck);
+        TransferDeck(discard, startingDeck);
+        startingDeck.ShuffleDeck();
+
+        timer = 60F;
+
+        semester++;
+        if (semester == 3)
+        {
+            year++;
+            semester = 1;
         }
     }
 }
@@ -243,6 +643,23 @@ public class Deck
             return cards.Count;
         }
     }
+
+    public int TrueCount
+    {
+        get
+        {
+            int n = 0;
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i] != null)
+                    n++;
+            }
+
+            return n;
+        }
+    }
+
 
     // returns the top card in the deck
     public Card topCard
