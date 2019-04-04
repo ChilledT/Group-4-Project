@@ -327,31 +327,34 @@ public class Game : MonoBehaviour
         {
             if (isShopping == false)
             {
-                if (handVisuals[currentCard].flipped == false)
+                if (endTurn == false)
                 {
-                    switch (currentEffect)
+                    if (handVisuals[currentCard].flipped == false)
                     {
-                        case Effect.None:
-                            if (hand.Count != 0)
-                            {
-                                SelectCard(hand, currentCard);
-                            }
-                            break;
-                        case Effect.Lock:
-                            handVisuals[currentCard].FlipCard();
-                            currentEffect = Effect.None;
-                            UpdateHand();
-                            break;
-                        case Effect.Discard:
-                            SendToDiscard(hand, currentCard);
-                            currentEffect = Effect.None;
-                            UpdateHand();
-                            break;
-                        case Effect.Trash:
-                            SendToTrash(hand, currentCard);
-                            currentEffect = Effect.None;
-                            UpdateHand();
-                            break;
+                        switch (currentEffect)
+                        {
+                            case Effect.None:
+                                if (hand.Count != 0)
+                                {
+                                    SelectCard(hand, currentCard);
+                                }
+                                break;
+                            case Effect.Lock:
+                                handVisuals[currentCard].FlipCard();
+                                currentEffect = Effect.None;
+                                UpdateHand();
+                                break;
+                            case Effect.Discard:
+                                SendToDiscard(hand, currentCard);
+                                currentEffect = Effect.None;
+                                UpdateHand();
+                                break;
+                            case Effect.Trash:
+                                SendToTrash(hand, currentCard);
+                                currentEffect = Effect.None;
+                                UpdateHand();
+                                break;
+                        }
                     }
                 }
             }
@@ -725,8 +728,6 @@ public class Deck
     /// </summary>
     public void ShuffleDeck ()
     {
-        return;
-
         List<Card> newlist = new List<Card>();
 
         while (cards.Count > 0)
