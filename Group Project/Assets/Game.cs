@@ -187,11 +187,11 @@ public class Game : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            CreateCardAnimation(hand.cards[0], handVisuals[0].GetComponent<RectTransform>().anchoredPosition, trashVisuals.GetComponent<RectTransform>().anchoredPosition);
+            CreateCardAnimation(hand.cards[0], handVisuals[0].transform.parent.position, trashVisuals.transform.parent.position);
         }
         if (Input.GetKeyDown(KeyCode.O))
         {
-            CreateCardAnimation(hand.cards[0], true,  handVisuals[0].GetComponent<RectTransform>().anchoredPosition, trashVisuals.GetComponent<RectTransform>().anchoredPosition);
+            CreateCardAnimation(hand.cards[0], true, handVisuals[0].transform.parent.position, trashVisuals.transform.parent.position);
         }
     }
 
@@ -620,7 +620,7 @@ public class Game : MonoBehaviour
         UpdateKnowledge(c.knowledge + stressIncrease);
 
         if (c.action == Action.Discard)
-            SendToDiscard(deck, card);
+            SendToDiscard(deck, card, true);
         else
             SendToTrash(deck, card);
 
@@ -631,12 +631,19 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void SendToDiscard (Deck deck, int slot)
+    private void SendToDiscard(Deck deck, int slot)
     {
+        SendToDiscard(deck, slot, false);
+    }
+    private void SendToDiscard (Deck deck, int slot, bool animateToCenter)
+    {
+        Card c = deck.cards[slot];
+
         TransferCard(deck, discard, slot);
 
         if (deck == hand)
         {
+            CreateCardAnimation(c, animateToCenter, handVisuals[slot].transform.parent.position, discardVisuals.transform.parent.position);
             UpdateHand();
         }
     }
@@ -701,15 +708,19 @@ public class Game : MonoBehaviour
     private void CreateCardAnimation (Card card, bool moveToCenter, Vector2 start, Vector2 target)
     {
         GameObject g = Instantiate(cardAnimation.gameObject);
-        g.transform.parent = GameObject.Find("Canvas").transform;
+        g.transform.SetParent(GameObject.Find("Canvas").transform, false);
 
-        g.GetComponent<RectTransform>().anchoredPosition = start;
+        g.transform.position = start;
 
         CardAnimationParent cap = g.GetComponent<CardAnimationParent>();
+        cap.oldPosition = start;
+        cap.oldScale = new Vector3(0.35F, 0.35F, 1F);
+
+        cap.template.card = card;
 
         if (moveToCenter)
-            cap.nodes.Add(new CardAnimationNode(Vector2.zero, Vector2.one));
-        cap.nodes.Add(new CardAnimationNode(target, transform.localScale));
+            cap.nodes.Add(new CardAnimationNode(GameObject.Find("ScreenCenter").transform.position, Vector2.one));
+        cap.nodes.Add(new CardAnimationNode(target, new Vector3(0.35F, 0.35F, 1F)));
     }
 }
 

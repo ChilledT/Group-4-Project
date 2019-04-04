@@ -9,39 +9,44 @@ public class CardAnimationParent : MonoBehaviour
     public List<CardAnimationNode> nodes = new List<CardAnimationNode>();
     public int currentNode;
 
-    private Vector3 oldScale;
-    private Vector3 oldPosition;
+    public Vector3 oldScale;
+    public Vector3 oldPosition;
 
     private float time;
-
-    private void Start()
-    {
-        oldPosition = transform.GetComponent<RectTransform>().anchoredPosition;
-        oldScale = transform.localScale;
-    }
+    private float wait = -1F;
 
     private void Update ()
     {
         if (currentNode < nodes.Count)
         {
-            time += Time.deltaTime;
-
-            float distance = Vector3.Distance(transform.position, nodes[currentNode].position);
-
-            if (distance < 0.05F)
+            wait -= Time.deltaTime;
+            if (wait < 0F)
             {
-                currentNode++;
+                time += Time.deltaTime;
 
-                time = 0F;
+                float distance = Vector3.Distance(transform.position, nodes[currentNode].position);
 
-                oldPosition = nodes[currentNode - 1].position;
-                oldScale = transform.localScale;
-            }
-            else
-            {
-                GetComponent<RectTransform>().anchoredPosition = Vector2.Lerp(oldPosition, nodes[currentNode].position, time);
+                Debug.Log(distance);
 
-                transform.localScale = Vector3.Lerp(oldScale, nodes[currentNode].scale, time);
+                if (distance < 0.05F)
+                {
+                    currentNode++;
+
+                    time = 0F;
+                    wait = 1F;
+
+                    oldPosition = nodes[currentNode - 1].position;
+                    transform.position = oldPosition;
+
+                    oldScale = transform.localScale;
+                    transform.localScale = oldScale;
+                }
+                else
+                {
+                    transform.position = Vector2.Lerp(oldPosition, nodes[currentNode].position, time);
+
+                    transform.localScale = Vector3.Lerp(oldScale, nodes[currentNode].scale, time);
+                }
             }
         }
         else
@@ -51,6 +56,7 @@ public class CardAnimationParent : MonoBehaviour
     }
 }
 
+[System.Serializable]
 public class CardAnimationNode
 {
     public Vector2 position;
