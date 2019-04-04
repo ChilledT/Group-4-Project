@@ -111,6 +111,11 @@ public class Game : MonoBehaviour
     private void Start()
     {
         startingDeck.ShuffleDeck();
+
+        shops[0].ShuffleDeck();
+        shops[1].ShuffleDeck();
+        shops[2].ShuffleDeck();
+        shops[3].ShuffleDeck();
     }
     private void Update()
     {
@@ -195,7 +200,7 @@ public class Game : MonoBehaviour
         {
             if (endTurn == false)
             {
-                while (hand.Count != handSize)
+                for (int i = 0; i < handSize - hand.Count; i++)
                 {
                     hand.cards.Add(null);
                 }
@@ -208,8 +213,11 @@ public class Game : MonoBehaviour
                 }
 
                 Deck temp = new Deck();
-                while (startingDeck.Count > 0 && temp.Count < handSize - count)
+                for (int i = 0; i < handSize - count; i++)
                 {
+                    if (startingDeck.Count == 0)
+                        break;
+
                     TransferCard(startingDeck, temp, 0);
                 }
 
@@ -437,13 +445,16 @@ public class Game : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (selectedCards.Contains(currentCard))
+            if (endTurn == false)
             {
-                selectedCards.Remove(currentCard);
-            }
-            else
-            {
-                selectedCards.Add(currentCard);
+                if (selectedCards.Contains(currentCard))
+                {
+                    selectedCards.Remove(currentCard);
+                }
+                else
+                {
+                    selectedCards.Add(currentCard);
+                }
             }
         }
     }
@@ -475,11 +486,16 @@ public class Game : MonoBehaviour
     /// <param name="to"></param>
     private void TransferDeck (Deck from, Deck to)
     {
-        from.cards.RemoveAll(item => item == null);
-
-        while(from.TrueCount != 0)
+        for(int i = 0; i < from.Count;)
         {
-            TransferCard(from, to, 0);
+            if (from.cards[i] != null)
+            {
+                TransferCard(from, to, i);
+            }
+            else
+            {
+                i++;
+            }
         }
     }
 
@@ -612,8 +628,6 @@ public class Game : MonoBehaviour
 
     private void EndTurn ()
     {
-        endTurn = true;
-
         TransferDeck(hand, startingDeck);
         TransferDeck(discard, startingDeck);
         startingDeck.ShuffleDeck();
@@ -626,6 +640,8 @@ public class Game : MonoBehaviour
             year++;
             semester = 1;
         }
+
+        endTurn = true;
     }
 }
 
@@ -709,6 +725,8 @@ public class Deck
     /// </summary>
     public void ShuffleDeck ()
     {
+        return;
+
         List<Card> newlist = new List<Card>();
 
         while (cards.Count > 0)

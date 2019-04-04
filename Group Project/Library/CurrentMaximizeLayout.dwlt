@@ -54,7 +54,7 @@ MonoBehaviour:
   m_PersistentViewDataDictionary: {fileID: 0}
   m_MaximizeOnPlay: 0
   m_Gizmos: 0
-  m_Stats: 0
+  m_Stats: 1
   m_SelectedSizes: 05000000000000000000000000000000000000000000000000000000000000000000000000000000
   m_TargetDisplay: 0
   m_ZoomArea:
@@ -74,7 +74,7 @@ MonoBehaviour:
     m_HSlider: 0
     m_VSlider: 0
     m_IgnoreScrollWheelUntilClicked: 0
-    m_EnableMouseInput: 0
+    m_EnableMouseInput: 1
     m_EnableSliderZoomHorizontal: 0
     m_EnableSliderZoomVertical: 0
     m_UniformScale: 1
@@ -159,7 +159,7 @@ MonoBehaviour:
   - {fileID: 7}
   - {fileID: 8}
   m_Selected: 0
-  m_LastSelected: 3
+  m_LastSelected: 1
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -191,9 +191,9 @@ MonoBehaviour:
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 0, y: 0, z: 0}
+    m_Target: {x: 100.51361, y: 384.37717, z: 0}
     speed: 2
-    m_Value: {x: 0, y: 0, z: 0}
+    m_Value: {x: 100.51361, y: 384.37717, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -225,9 +225,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 22
+    m_Target: 423.84286
     speed: 2
-    m_Value: 22
+    m_Value: 423.84286
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -262,20 +262,20 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 73
-    width: 947
-    height: 630
+    width: 1394
+    height: 418
   m_PersistentViewDataDictionary: {fileID: 0}
   m_VertSplit:
-    ID: 61
+    ID: 148
     splitterInitialOffset: 180
     currentActiveSplitter: -1
-    realSizes: 7b010000eb000000
+    realSizes: f80000009a000000
     relativeSizes:
     - 0.61685824
     - 0.38314176
     minSizes: 3200000032000000
     maxSizes: 0000000000000000
-    lastTotalSize: 614
+    lastTotalSize: 402
     splitSize: 6
     xOffset: 0
   m_Recording: 1
@@ -815,7 +815,7 @@ MonoBehaviour:
   m_MinSize: {x: 234, y: 498}
   m_MaxSize: {x: 10004, y: 14048}
   vertical: 1
-  controlID: 34
+  controlID: 56
 --- !u!114 &13
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -835,8 +835,8 @@ MonoBehaviour:
     y: 0
     width: 588
     height: 523
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 204, y: 224}
+  m_MaxSize: {x: 4004, y: 4024}
   m_ActualView: {fileID: 14}
   m_Panes:
   - {fileID: 14}
