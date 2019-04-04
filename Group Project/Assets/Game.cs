@@ -47,7 +47,7 @@ public class Game : MonoBehaviour
     {
         get
         {
-            bool[] bools = new bool[5];
+            bool[] bools = new bool[hand.Count];
 
             for (int i = 0; i < hand.Count; i++)
             {
@@ -104,6 +104,13 @@ public class Game : MonoBehaviour
 
     public Effect currentEffect;
 
+    [Header("Event Cards")]
+    public Sprite[] year1EventCards;
+    public int year1Event = -1;
+    [Space]
+    public Sprite[] year2EventCards;
+    public int year2Event = -1;
+
     private void Awake()
     {
         game = this;
@@ -156,6 +163,25 @@ public class Game : MonoBehaviour
             EndTurn();
 
         isHandEmpty = IsHandEmpty;
+
+        if (year1Event != -1)
+        {
+            switch(year1Event)
+            {
+                case 0:
+                    handSize = 5;
+                    maxStress = 27;
+                    break;
+                case 1:
+                    handSize = 6;
+                    maxStress = 30;
+                    break;
+                case 2:
+                    handSize = 7;
+                    maxStress = 35;
+                    break;
+            }
+        }
     }
 
     private void HandHandler ()
@@ -166,7 +192,7 @@ public class Game : MonoBehaviour
             {
                 if (Input.GetKeyDown(KeyCode.A))
                 {
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         currentCard--;
 
@@ -181,7 +207,7 @@ public class Game : MonoBehaviour
                 }
                 if (Input.GetKeyDown(KeyCode.D))
                 {
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         currentCard++;
 
@@ -200,7 +226,8 @@ public class Game : MonoBehaviour
         {
             if (endTurn == false)
             {
-                for (int i = 0; i < handSize - hand.Count; i++)
+                int c = hand.Count;
+                for (int i = 0; i < handSize - c; i++)
                 {
                     hand.cards.Add(null);
                 }
@@ -247,7 +274,7 @@ public class Game : MonoBehaviour
             UpdateHand();
         }
 
-        for (int i = 0; i < handSize; i++)
+        for (int i = 0; i < 7; i++)
         {
             if (i < hand.Count)
             {
@@ -569,8 +596,17 @@ public class Game : MonoBehaviour
     {
         Card c = deck.cards[card];
 
+        int stressIncrease = 0;
+        if (year2Event != -1)
+        {
+            if (stress > 15)
+            {
+                stressIncrease += year2Event;
+            }
+        }
+
         UpdateStress(c.stress);
-        UpdateKnowledge(c.knowledge);
+        UpdateKnowledge(c.knowledge + stressIncrease);
 
         if (c.action == Action.Discard)
             SendToDiscard(deck, card);
