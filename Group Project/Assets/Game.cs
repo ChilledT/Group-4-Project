@@ -7,6 +7,8 @@ public class Game : MonoBehaviour
 {
     public static Game game;
 
+    public CardAnimationParent cardAnimation;
+
     public int currentCard;
     private int oldCard = -1;
 
@@ -181,6 +183,15 @@ public class Game : MonoBehaviour
                     maxStress = 35;
                     break;
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            CreateCardAnimation(hand.cards[0], handVisuals[0].GetComponent<RectTransform>().anchoredPosition, trashVisuals.GetComponent<RectTransform>().anchoredPosition);
+        }
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            CreateCardAnimation(hand.cards[0], true,  handVisuals[0].GetComponent<RectTransform>().anchoredPosition, trashVisuals.GetComponent<RectTransform>().anchoredPosition);
         }
     }
 
@@ -681,6 +692,24 @@ public class Game : MonoBehaviour
         }
 
         endTurn = true;
+    }
+
+    private void CreateCardAnimation (Card card, Vector2 start, Vector2 target)
+    {
+        CreateCardAnimation(card, false, start, target);
+    }
+    private void CreateCardAnimation (Card card, bool moveToCenter, Vector2 start, Vector2 target)
+    {
+        GameObject g = Instantiate(cardAnimation.gameObject);
+        g.transform.parent = GameObject.Find("Canvas").transform;
+
+        g.GetComponent<RectTransform>().anchoredPosition = start;
+
+        CardAnimationParent cap = g.GetComponent<CardAnimationParent>();
+
+        if (moveToCenter)
+            cap.nodes.Add(new CardAnimationNode(Vector2.zero, Vector2.one));
+        cap.nodes.Add(new CardAnimationNode(target, transform.localScale));
     }
 }
 
