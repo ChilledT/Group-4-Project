@@ -157,7 +157,7 @@ public class Game : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Return))
             {
                 // next turn lmao
-                endTurn = false;
+                StartTurn();
             }
         }
 
@@ -600,6 +600,17 @@ public class Game : MonoBehaviour
                 currentEffect = Effect.Trash;
                 UseCard(deck, card);
                 break;
+            case Effect.ForEveryCard:
+                UseCard(deck, card);
+
+                // the most disgusting line of code i've ever written - Adam
+                Deck d = c.deck == TargetDeck.discard ? discard : c.deck == TargetDeck.hand ? hand : trash;
+
+                int amount = (d.Count / c.targetAmount);
+
+                UpdateStress(amount * c.stressGain);
+                UpdateKnowledge(amount * c.knowledgeGain);
+                break;
         }
     }
 
@@ -610,9 +621,17 @@ public class Game : MonoBehaviour
         int stressIncrease = 0;
         if (year2Event != -1)
         {
-            if (stress > 15)
+            int stresscap = 0;
+            if (year2Event == 0)
+                stresscap = 15;
+            else if (year2Event == 1)
+                stresscap = 16;
+            else if (year2Event == 2)
+                stresscap = 18;
+
+            if (stress >= stresscap)
             {
-                stressIncrease += year2Event;
+                stressIncrease += year2Event + 1;
             }
         }
 
@@ -622,7 +641,7 @@ public class Game : MonoBehaviour
         if (c.action == Action.Discard)
             SendToDiscard(deck, card, true);
         else
-            SendToTrash(deck, card);
+            SendToTrash(deck, card, true);
 
         if (deck == hand)
         {
@@ -631,10 +650,21 @@ public class Game : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sends a card to the discard pile.
+    /// </summary>
+    /// <param name="deck">The deck the card is in.</param>
+    /// <param name="slot">The slot the card is in.</param>
     private void SendToDiscard(Deck deck, int slot)
     {
         SendToDiscard(deck, slot, false);
     }
+    /// <summary>
+    /// Sends a card to the discard pile, with an animation.
+    /// </summary>
+    /// <param name="deck">The deck the card is in.</param>
+    /// <param name="slot">The slot the card is in.</param>
+    /// <param name="animateToCenter">Whether the card will animate.</param>
     private void SendToDiscard (Deck deck, int slot, bool animateToCenter)
     {
         Card c = deck.cards[slot];
@@ -647,16 +677,38 @@ public class Game : MonoBehaviour
             UpdateHand();
         }
     }
+
+    /// <summary>
+    /// Sends a card to the trash pile.
+    /// </summary>
+    /// <param name="deck">The deck the card is in.</param>
+    /// <param name="slot">The slot the card is in.</param>
     private void SendToTrash(Deck deck, int slot)
     {
+        SendToTrash(deck, slot, false);
+    }
+    /// <summary>
+    /// Sends a card to the trash pile, with an animation.
+    /// </summary>
+    /// <param name="deck">The deck the card is in.</param>
+    /// <param name="slot">The slot the card is in.</param>
+    /// <param name="animateToCenter">Whether the card will animate.</param>
+    private void SendToTrash(Deck deck, int slot, bool animateToCenter)
+    {
+        Card c = deck.cards[slot];
+
         TransferCard(deck, trash, slot);
 
         if (deck == hand)
         {
+            CreateCardAnimation(c, animateToCenter, handVisuals[slot].transform.parent.position, trashVisuals.transform.parent.position);
             UpdateHand();
         }
     }
 
+    /// <summary>
+    /// Updates the hand visuals.
+    /// </summary>
     private void UpdateHand ()
     {
         if (!isHandNull)
@@ -672,39 +724,91 @@ public class Game : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the stress value.
+    /// </summary>
+    /// <param name="value">The value to be increased / decreased by.</param>
     public void UpdateStress (int value)
     {
         stress += value;
         if (stress < 0)
             stress = 0;
     }
+    /// <summary>
+    /// Updates the knowledge value.
+    /// </summary>
+    /// <param name="value">The value to be increased / decreased by.</param>
     public void UpdateKnowledge (int value)
     {
         knowledge += value;
     }
 
-    private void EndTurn ()
+    /// <summary>
+    /// Starts the turn.
+    /// </summary>
+    private void StartTurn ()
     {
-        TransferDeck(hand, startingDeck);
         TransferDeck(discard, startingDeck);
         startingDeck.ShuffleDeck();
-
-        timer = 60F;
 
         semester++;
         if (semester == 3)
         {
             year++;
             semester = 1;
+            EndYear();
         }
+
+        endTurn = false;
+    }
+    /// <summary>
+    /// Ends the turn.
+    /// </summary>
+    private void EndTurn ()
+    {
+        TransferDeck(startingDeck, discard);
+        TransferDeck(hand, discard);
+
+        timer = 60F;
 
         endTurn = true;
     }
+    /// <summary>
+    /// Ends the year.
+    /// </summary>
+    private void EndYear ()
+    {
+        if (year == 1)
+        {
+            // first year over
+        }
+        else if (year == 2)
+        {
+            // second year over
+        }
+        else if (year == 3)
+        {
+            // third year over
+        }
+    }
 
+    /// <summary>
+    /// Creates a card animation.
+    /// </summary>
+    /// <param name="card"></param>
+    /// <param name="start"></param>
+    /// <param name="target"></param>
     private void CreateCardAnimation (Card card, Vector2 start, Vector2 target)
     {
         CreateCardAnimation(card, false, start, target);
     }
+    /// <summary>
+    /// Creates a card animation, that moves towards the center of the screen.
+    /// </summary>
+    /// <param name="card"></param>
+    /// <param name="moveToCenter"></param>
+    /// <param name="start"></param>
+    /// <param name="target"></param>
     private void CreateCardAnimation (Card card, bool moveToCenter, Vector2 start, Vector2 target)
     {
         GameObject g = Instantiate(cardAnimation.gameObject);
@@ -784,7 +888,7 @@ public class Deck
     {
         if (index < cards.Count)
         {
-            cards.Remove(cards[index]);
+            cards.RemoveAt(index);
         }
     }
     /// <summary>
