@@ -26,8 +26,6 @@ public class CardAnimationParent : MonoBehaviour
 
                 float distance = Vector3.Distance(transform.position, nodes[currentNode].position);
 
-                Debug.Log(distance);
-
                 if (distance < 0.05F)
                 {
                     currentNode++;

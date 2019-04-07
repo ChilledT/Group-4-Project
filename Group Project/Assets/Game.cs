@@ -107,10 +107,10 @@ public class Game : MonoBehaviour
     public Effect currentEffect;
 
     [Header("Event Cards")]
-    public Sprite[] year1EventCards;
+    public GameObject[] year1EventCards;
     public int year1Event = -1;
     [Space]
-    public Sprite[] year2EventCards;
+    public GameObject[] year2EventCards;
     public int year2Event = -1;
 
     private void Awake()
@@ -354,6 +354,11 @@ public class Game : MonoBehaviour
 
         trashVisuals.gameObject.SetActive(trash.Count != 0);
         trashVisuals.card = trash.topCard;
+
+        for (int i = 0; i < year1EventCards.Length; i++)
+            year1EventCards[i].SetActive(year1Event + 1 == i);
+        for (int i = 0; i < year2EventCards.Length; i++)
+            year2EventCards[i].SetActive(year2Event + 1 == i);
     }
 
     /// <summary>
@@ -540,6 +545,11 @@ public class Game : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Selects a card and tells the game what to do with it.
+    /// </summary>
+    /// <param name="deck"></param>
+    /// <param name="card"></param>
     public void SelectCard (Deck deck, int card)
     {
         Card c = deck.cards[card];
@@ -614,6 +624,11 @@ public class Game : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Uses a card, applying the stress and knowledge.
+    /// </summary>
+    /// <param name="deck"></param>
+    /// <param name="card"></param>
     public void UseCard (Deck deck, int card)
     {
         Card c = deck.cards[card];
@@ -778,17 +793,32 @@ public class Game : MonoBehaviour
     /// </summary>
     private void EndYear ()
     {
-        if (year == 1)
+        if (year == 2)
         {
             // first year over
-        }
-        else if (year == 2)
-        {
-            // second year over
+            if (knowledge >= 20)
+                year1Event = 2;
+            else if (knowledge >= 15)
+                year1Event = 1;
+            else if (knowledge >= 10)
+                year1Event = 0;
         }
         else if (year == 3)
         {
+            // second year over
+            if (knowledge >= 40)
+                year2Event = 2;
+            else if (knowledge >= 35)
+                year2Event = 1;
+            else if (knowledge >= 30)
+                year2Event = 0;
+        }
+        else if (year == 4)
+        {
             // third year over
+
+            // end the game
+            Debug.Log("You win!");
         }
     }
 
