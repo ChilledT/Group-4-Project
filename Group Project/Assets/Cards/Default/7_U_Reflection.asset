@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: 7_U_Reflection
   m_EditorClassIdentifier: 
   name: Reflection
-  sprite: {fileID: 21300000, guid: 4d9470295505c63468f1c56bf89fd92a, type: 3}
+  sprite: {fileID: 21300000, guid: bb4ab1790f0d5a442801744964fb9686, type: 3}
+  backing: {fileID: 21300000, guid: a38e1ce5334888b4cb68a050ddd27de5, type: 3}
   cost: 7
   stress: 0
   knowledge: 0
+  freeCardCost: 0
   effect: 10
   action: 1
   deck: 1

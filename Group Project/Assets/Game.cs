@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
@@ -106,12 +107,18 @@ public class Game : MonoBehaviour
 
     public Effect currentEffect;
 
+    public int freeCardCost;
+
     [Header("Event Cards")]
     public GameObject[] year1EventCards;
     public int year1Event = -1;
     [Space]
     public GameObject[] year2EventCards;
     public int year2Event = -1;
+
+    public int year3Event = -1;
+
+    private bool isGameOver;
 
     private void Awake()
     {
@@ -128,6 +135,18 @@ public class Game : MonoBehaviour
     }
     private void Update()
     {
+        if (isGameOver)
+        {
+            Data.data.didWin = true;
+            Data.data.firstYear = year1Event;
+            Data.data.secondYear = year2Event;
+            Data.data.thirdYear = year3Event;
+
+            Destroy(this);
+            SceneManager.LoadScene(2);
+            return;
+        }
+
         if (!endTurn)
         {
             timer -= Time.deltaTime;
@@ -135,6 +154,18 @@ public class Game : MonoBehaviour
             {
                 EndTurn();
             }
+        }
+
+        if (stress > maxStress)
+        {
+            isGameOver = true;
+            Data.data.didWin = false;
+            Data.data.firstYear = year1Event;
+            Data.data.secondYear = year2Event;
+            Data.data.thirdYear = year3Event;
+
+            Destroy(this);
+            SceneManager.LoadScene(2);
         }
 
         GameObject.Find("StressText").GetComponent<Text>().text = stress + " / " + maxStress;
@@ -172,13 +203,17 @@ public class Game : MonoBehaviour
             {
                 case 0:
                     handSize = 5;
-                    maxStress = 27;
+                    maxStress = 25;
                     break;
                 case 1:
+                    handSize = 5;
+                    maxStress = 27;
+                    break;
+                case 2:
                     handSize = 6;
                     maxStress = 30;
                     break;
-                case 2:
+                case 3:
                     handSize = 7;
                     maxStress = 35;
                     break;
@@ -403,6 +438,14 @@ public class Game : MonoBehaviour
             }
             else
             {
+                bool spendCards = true;
+                switch (currentEffect)
+                {
+                    case Effect.TakeShop:
+                        spendCards = false;
+                        break;
+                }
+
                 int cost = 0;
                 switch (currentCard)
                 {
@@ -420,7 +463,7 @@ public class Game : MonoBehaviour
                         break;
                 }
 
-                if (selectedCardsCost >= cost)
+                if (selectedCardsCost >= cost && spendCards == true)
                 {
                     // buy card :D
                     TransferCard(shops[currentCard], discard, shops[currentCard].Count - 1);
@@ -432,6 +475,17 @@ public class Game : MonoBehaviour
 
                     UpdateHand();
                     isShopping = false;
+                }
+                if (spendCards == false && freeCardCost >= cost)
+                {
+                    TransferCard(shops[currentCard], discard, shops[currentCard].Count - 1);
+                    selectedCards.Clear();
+
+                    UpdateHand();
+
+                    currentEffect = Effect.None;
+                    isShopping = false;
+                    freeCardCost = 0;
                 }
             }
         }
@@ -477,7 +531,7 @@ public class Game : MonoBehaviour
                 currentCard = 0;
                 isShopping = true;
             }
-            else if (isShopping == true)
+            else if (isShopping == true && currentEffect != Effect.TakeShop)
             {
                 UpdateHand();
                 isShopping = false;
@@ -598,6 +652,12 @@ public class Game : MonoBehaviour
                 }
                 UseCard(deck, card);
                 break;
+            case Effect.TakeShop:
+                isShopping = true;
+                currentEffect = Effect.TakeShop;
+                freeCardCost = c.freeCardCost;
+                UseCard(deck, card);
+                break;
             case Effect.Lock:
                 currentEffect = Effect.Lock;
                 UseCard(deck, card);
@@ -634,19 +694,19 @@ public class Game : MonoBehaviour
         Card c = deck.cards[card];
 
         int stressIncrease = 0;
-        if (year2Event != -1)
+        if (year2Event > 0)
         {
             int stresscap = 0;
-            if (year2Event == 0)
+            if (year2Event == 1)
                 stresscap = 15;
-            else if (year2Event == 1)
-                stresscap = 16;
             else if (year2Event == 2)
+                stresscap = 16;
+            else if (year2Event == 3)
                 stresscap = 18;
 
             if (stress >= stresscap)
             {
-                stressIncrease += year2Event + 1;
+                stressIncrease += year2Event;
             }
         }
 
@@ -797,28 +857,39 @@ public class Game : MonoBehaviour
         {
             // first year over
             if (knowledge >= 20)
-                year1Event = 2;
+                year1Event = 3;
             else if (knowledge >= 15)
-                year1Event = 1;
+                year1Event = 2;
             else if (knowledge >= 10)
+                year1Event = 1;
+            else
                 year1Event = 0;
         }
         else if (year == 3)
         {
             // second year over
             if (knowledge >= 40)
+                year2Event = 3;
+            else if (knowledge >= 32)
                 year2Event = 2;
-            else if (knowledge >= 35)
+            else if (knowledge >= 24)
                 year2Event = 1;
-            else if (knowledge >= 30)
+            else
                 year2Event = 0;
         }
         else if (year == 4)
         {
-            // third year over
+            if (knowledge >= 60)
+                year3Event = 3;
+            else if (knowledge >= 48)
+                year3Event = 2;
+            else if (knowledge >= 36)
+                year3Event = 1;
+            else
+                year3Event = 0;
 
-            // end the game
-            Debug.Log("You win!");
+            // third year over
+            isGameOver = true;
         }
     }
 

@@ -11,11 +11,14 @@ public class Card : ScriptableObject
 {
     public new string name;
     public Sprite sprite;
+    public Sprite backing;
     [Space]
     public int cost;
     [Space]
     public int stress;
     public int knowledge;
+    [Space]
+    public int freeCardCost;
     [Space]
     public Effect effect;
     public Action action;

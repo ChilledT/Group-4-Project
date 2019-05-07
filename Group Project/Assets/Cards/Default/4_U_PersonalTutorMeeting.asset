@@ -14,8 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Personal Tutor Meeting
   sprite: {fileID: 21300000, guid: c08d7142dfc021744a26d7d84c3a45b3, type: 3}
+  backing: {fileID: 21300000, guid: a38e1ce5334888b4cb68a050ddd27de5, type: 3}
   cost: 4
   stress: 0
   knowledge: 0
+  freeCardCost: 0
   effect: 6
   action: 1
+  deck: 0
+  targetAmount: 0
+  knowledgeGain: 0
+  stressGain: 0

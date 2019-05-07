@@ -12,6 +12,7 @@ public class CardTemplate : MonoBehaviour
     public bool isTrading;
 
     public Image image;
+    public Image backing;
 
     private Card oldCard;
 
@@ -38,6 +39,7 @@ public class CardTemplate : MonoBehaviour
             return;
 
         image.sprite = card.sprite;
+        backing.sprite = card.backing;
     }
 
     public void FlipCard()
